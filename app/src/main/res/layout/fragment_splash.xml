@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/kamui_bg">
+
+    <!-- Background Glow Effect Layer -->
+    <View
+        android:id="@+id/splash_glow"
+        android:layout_width="400dp"
+        android:layout_height="400dp"
+        android:layout_gravity="center"
+        android:background="@drawable/logo"
+        android:alpha="0.1"
+        android:scaleX="1.5"
+        android:scaleY="1.5" />
+
+    <LinearLayout
+        android:id="@+id/splash_content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:alpha="0">
+
+        <ImageView
+            android:id="@+id/splash_logo"
+            android:layout_width="240dp"
+            android:layout_height="240dp"
+            android:src="@drawable/logo"
+            android:layout_marginBottom="32dp"
+            android:contentDescription="@string/app_name" />
+
+        <TextView
+            android:id="@+id/splash_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textColor="@color/kamui_fg"
+            android:textSize="40sp"
+            android:letterSpacing="0.15"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-condensed-light" />
+
+        <TextView
+            android:id="@+id/splash_tagline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/app_tagline"
+            android:textColor="@color/kamui_accent"
+            android:textSize="12sp"
+            android:textAllCaps="true"
+            android:letterSpacing="0.2" />
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="40dp"
+        android:text="@string/powered_by"
+        android:textColor="@color/kamui_subtle"
+        android:textSize="11sp"
+        android:alpha="0.5" />
+
+</FrameLayout>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/help_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="How to use KamuiNet"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/help_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="KamuiNet allows you to share your internet connection with other devices over a secure P2P tunnel.\n\nStep 1: On the device WITH internet, tap 'Share my internet'. A QR code will appear.\n\nStep 2: On the other device, tap 'Receive internet'.\n\nStep 3: Choose 'Scan QR Code' and scan the QR code from the first device.\n\nStep 4: The VPN will start. Wait for the notification to say 'P2P Tunnel active'.\n\nNote: Both devices should ideally be signed in with the same account for the best experience. If you are behind a strict firewall, connection may take a few seconds."
+            android:textSize="16sp" />
+    </ScrollView>
+</LinearLayout>

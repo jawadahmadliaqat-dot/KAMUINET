@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/kamui_bg"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        android:orientation="vertical"
+        android:paddingTop="32dp"> <!-- Extra padding to ensure top bar clearance -->
+
+        <!-- Main Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            app:cardBackgroundColor="@color/kamui_surface"
+            app:cardCornerRadius="16dp"
+            app:strokeColor="@color/kamui_border"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <ImageView
+                    android:id="@+id/sync_icon"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:layout_marginBottom="20dp"
+                    android:src="@drawable/logo" />
+
+                <TextView
+                    android:id="@+id/sharing_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ready to share"
+                    android:textColor="@color/kamui_fg"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:id="@+id/kamui_id_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Your ID: —"
+                    android:textColor="@color/kamui_accent"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:id="@+id/sharing_detail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Share on the device with internet, then join on the other."
+                    android:textColor="@color/kamui_muted"
+                    android:textSize="13sp"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:id="@+id/peer_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="0 / 2 users connected"
+                    android:textColor="@color/kamui_subtle"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/endpoint_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="monospace"
+                    android:text="—"
+                    android:textColor="@color/kamui_subtle"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/link_type_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Direct P2P"
+                    android:textColor="@color/kamui_ok"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <!-- Traffic Lights Indicator -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:id="@+id/light_red"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_marginEnd="6dp"
+                        android:alpha="0.2"
+                        android:background="@drawable/ic_traffic_light"
+                        android:backgroundTint="@color/kamui_danger" />
+
+                    <View
+                        android:id="@+id/light_yellow"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_marginEnd="6dp"
+                        android:alpha="0.2"
+                        android:background="@drawable/ic_traffic_light"
+                        android:backgroundTint="@color/kamui_warn" />
+
+                    <View
+                        android:id="@+id/light_green"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:alpha="0.2"
+                        android:background="@drawable/ic_traffic_light"
+                        android:backgroundTint="@color/kamui_ok" />
+                </LinearLayout>
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/loading_indicator"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginTop="16dp"
+                    android:indeterminate="true"
+                    android:visibility="gone"
+                    app:indicatorColor="@color/kamui_accent"
+                    app:indicatorSize="24dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_retry"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Retry Connection"
+                    android:textColor="@color/kamui_accent"
+                    android:visibility="gone"
+                    app:cornerRadius="8dp"
+                    app:strokeColor="@color/kamui_accent" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Login Section (Restored) -->
+        <LinearLayout
+            android:id="@+id/auth_panel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="visible">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sign in"
+                android:textColor="@color/kamui_fg"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Same account on host and client."
+                android:textColor="@color/kamui_muted"
+                android:textSize="13sp"
+                android:layout_marginBottom="20dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_google_login"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginBottom="24dp"
+                android:backgroundTint="#f8f9fa"
+                android:text="Google"
+                android:textAllCaps="false"
+                android:textColor="#0a0c10"
+                android:textSize="14sp"
+                app:cornerRadius="8dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:boxBackgroundColor="@color/kamui_surface"
+                app:boxStrokeColor="@color/kamui_border"
+                app:hintEnabled="false"
+                app:boxCornerRadiusTopStart="8dp"
+                app:boxCornerRadiusTopEnd="8dp"
+                app:boxCornerRadiusBottomStart="8dp"
+                app:boxCornerRadiusBottomEnd="8dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/email_field"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Email"
+                    android:inputType="textEmailAddress"
+                    android:textColor="@color/kamui_fg"
+                    android:textColorHint="@color/kamui_muted"
+                    android:paddingVertical="12dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:boxBackgroundColor="@color/kamui_surface"
+                app:boxStrokeColor="@color/kamui_border"
+                app:hintEnabled="false"
+                app:passwordToggleEnabled="true"
+                app:passwordToggleTint="@color/kamui_muted"
+                app:boxCornerRadiusTopStart="8dp"
+                app:boxCornerRadiusTopEnd="8dp"
+                app:boxCornerRadiusBottomStart="8dp"
+                app:boxCornerRadiusBottomEnd="8dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/pass_field"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Password"
+                    android:inputType="textPassword"
+                    android:textColor="@color/kamui_fg"
+                    android:textColorHint="@color/kamui_muted"
+                    android:paddingVertical="12dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_sign_in"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginBottom="8dp"
+                android:text="Sign in"
+                android:textAllCaps="false"
+                android:textColor="@color/kamui_fg"
+                app:cornerRadius="8dp"
+                app:strokeColor="@color/kamui_border"
+                app:strokeWidth="1dp"
+                style="@style/Widget.Material3.Button.OutlinedButton" />
+
+            <TextView
+                android:id="@+id/btn_switch_auth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Need an account? Sign up here"
+                android:textColor="@color/kamui_accent"
+                android:textSize="12sp"
+                android:padding="8dp" />
+        </LinearLayout>
+
+        <!-- Action Section -->
+        <LinearLayout
+            android:id="@+id/action_panel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/btn_share"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="@color/kamui_accent"
+                android:text="Share my internet"
+                android:textColor="@color/kamui_accent_fg"
+                app:cornerRadius="10dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_receive"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="24dp"
+                android:text="Receive internet"
+                android:textColor="@color/kamui_fg"
+                app:cornerRadius="10dp"
+                app:strokeColor="@color/kamui_border" />
+
+            <!-- Premium Upgrade Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_upgrade"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_pro_gradient"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="20dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="KamuiNet Pro"
+                            android:textColor="#FFFFFF"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Unlimited speed &amp; no data limits"
+                            android:textColor="#CCFFFFFF"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="#33FFFFFF"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        android:text="UPGRADE"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- Log Area -->
+        <TextView
+            android:id="@+id/activity_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginBottom="8dp"
+            android:text="Activity"
+            android:textColor="@color/kamui_muted"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            app:cardBackgroundColor="@color/kamui_surface"
+            app:cardCornerRadius="12dp"
+            app:strokeColor="@color/kamui_border"
+            app:strokeWidth="1dp">
+
+            <ScrollView
+                android:id="@+id/log_scroll"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp">
+
+                <TextView
+                    android:id="@+id/log_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:textColor="@color/kamui_muted"
+                    android:textSize="11sp" />
+            </ScrollView>
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+</ScrollView>

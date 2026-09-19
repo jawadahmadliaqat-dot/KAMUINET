@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/kamui_bg"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="Security Audit"
+            android:textColor="@color/kamui_fg"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <!-- Live Audit Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            app:cardBackgroundColor="@color/kamui_surface"
+            app:cardCornerRadius="16dp"
+            app:strokeColor="@color/kamui_border"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tunnel Infrastructure"
+                    android:textColor="@color/kamui_accent"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textAllCaps="true" />
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/kamui_border" android:layout_marginVertical="12dp"/>
+
+                <!-- Encryption Row (Vertical to avoid squashing) -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Encryption" android:textColor="@color/kamui_muted" android:textSize="12sp" />
+                    <TextView android:id="@+id/tv_encryption_type" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Kamui-GCM Secure (Hardware Accelerated)" android:textColor="@color/kamui_fg" android:textStyle="bold" android:layout_marginTop="2dp" />
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="16dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Tunnel Health" android:textColor="@color/kamui_muted" />
+                    <TextView android:id="@+id/tv_tunnel_health" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Verified" android:textColor="@color/kamui_ok" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="12dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Data Secured" android:textColor="@color/kamui_muted" />
+                    <TextView android:id="@+id/tv_data_secured" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 MB" android:textColor="@color/kamui_fg" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="12dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Host Trust Score" android:textColor="@color/kamui_muted" />
+                    <TextView android:id="@+id/tv_trust_score" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="100%" android:textColor="@color/kamui_accent" android:textStyle="bold" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Trust Model Info -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/kamui_surface"
+            app:cardCornerRadius="16dp"
+            app:strokeColor="@color/kamui_border"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Zero-Trust Model"
+                    android:textColor="@color/kamui_fg"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="• Multi-layered encrypted signaling\n• Same-account verification enforced\n• Automated key rotation\n• Real-time data leak protection"
+                    android:textColor="@color/kamui_muted"
+                    android:textSize="12sp"
+                    android:lineSpacingExtra="4dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+</ScrollView>

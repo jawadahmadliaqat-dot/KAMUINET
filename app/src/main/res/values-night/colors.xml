@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- KamuiNet Neon Dark Theme -->
+    <color name="kamui_bg">#0F1117</color>
+    <color name="kamui_surface">#161b22</color>
+    <color name="kamui_elevated">#21262d</color>
+    <color name="kamui_border">#30363d</color>
+    <color name="kamui_accent">#42A5F5</color> <!-- Blue for Dark Mode -->
+    <color name="kamui_neon_cyan">#00F2FF</color>
+    <color name="kamui_neon_green">#00FF88</color>
+    <color name="kamui_accent_fg">#0F1117</color>
+    <color name="kamui_ok">#00ff88</color>
+    <color name="kamui_warn">#f9c513</color>
+    <color name="kamui_danger">#ff4d4d</color>
+    <color name="kamui_fg">#f0f6fc</color>
+    <color name="kamui_muted">#8b949e</color>
+    <color name="kamui_subtle">#484f58</color>
+</resources>

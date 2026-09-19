@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- KamuiNet Light Mode -->
+    <color name="kamui_bg">#F8F9FA</color>
+    <color name="kamui_surface">#FFFFFF</color>
+    <color name="kamui_elevated">#F1F3F4</color>
+    <color name="kamui_border">#DADCE0</color>
+    <color name="kamui_accent">#2196F3</color> <!-- Material Blue -->
+    <color name="kamui_neon_cyan">#00BCD4</color>
+    <color name="kamui_neon_green">#4CAF50</color>
+    <color name="kamui_accent_fg">#FFFFFF</color>
+    <color name="kamui_ok">#4CAF50</color>
+    <color name="kamui_warn">#FBBC04</color>
+    <color name="kamui_danger">#EA4335</color>
+    <color name="kamui_fg">#202124</color>
+    <color name="kamui_muted">#5F6368</color>
+    <color name="kamui_subtle">#9AA0A6</color>
+
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+</resources>
