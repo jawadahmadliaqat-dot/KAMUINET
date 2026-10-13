@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AndroidLayouts">
+    <shared>
+      <config />
+    </shared>
+    <layouts>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/bg_chip.xml">
+        <config>
+          <theme>@style/Theme.KamuiNet</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/bg_chip_danger.xml">
+        <config>
+          <theme>@style/Theme.KamuiNet</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/bg_chip_ok.xml">
+        <config>
+          <theme>@style/Theme.KamuiNet</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/bg_chip_warn.xml">
+        <config>
+          <theme>@style/Theme.KamuiNet</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/ic_launcher_background.xml">
+        <config>
+          <theme>@style/Theme.KamuiNet</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/ic_launcher_foreground.xml">
+        <config>
+          <theme>@android:style/Theme.Material.Light</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/qr_frame.xml">
+        <config>
+          <theme>@style/Theme.KamuiNet</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml">
+        <config>
+          <theme>@style/Theme.KamuiNet</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_qr_scanner.xml">
+        <config>
+          <theme>@style/Theme.KamuiNet</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/fragment_home.xml">
+        <config>
+          <theme>@style/Theme.KamuiNet</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/item_app_selection.xml">
+        <config>
+          <theme>@style/Theme.KamuiNet</theme>
+        </config>
+      </layout>
+    </layouts>
+  </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="NONE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="d6ab606f-da4b-40a5-960e-cfaae31f5a3c" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.artifacts/3eedf574-15d2-414a-ad7d-5fad8fe08a50/app_details.artifact.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.artifacts/3eedf574-15d2-414a-ad7d-5fad8fe08a50/implementation_plan.artifact.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.artifacts/3eedf574-15d2-414a-ad7d-5fad8fe08a50/task.artifact.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.artifacts/3eedf574-15d2-414a-ad7d-5fad8fe08a50/walkthrough.artifact.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.artifacts/66716240-0b26-496c-af28-613447f7b384/walkthrough.artifact.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.artifacts/task.artifact.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/data/AppConfigRepository.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/router/AdBlocker.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/router/DataOptimizer.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/router/SniSniffer.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/ui/AppSelectionFragment.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/ui/AppSelectionViewModel.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/util/CryptoUtils.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/layout/fragment_app_selection.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/layout/item_app_selection.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scratch/cloudflare_worker.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.artifacts/app_analysis_report.artifact.md" beforeDir="false" afterPath="$PROJECT_DIR$/.artifacts/app_analysis_report.artifact.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.artifacts/implementation_plan.artifact.md" beforeDir="false" afterPath="$PROJECT_DIR$/.artifacts/implementation_plan.artifact.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/planningMode.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/planningMode.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/data/Models.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/data/Models.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/data/VpnRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/data/VpnRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/di/AppModule.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/di/AppModule.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/router/FramingProtocol.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/router/FramingProtocol.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/router/HostRelayManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/router/HostRelayManager.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/router/KamuiHostService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/router/KamuiHostService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/router/PacketRouter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/router/PacketRouter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/router/TunProxyEngine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/router/TunProxyEngine.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/signaling/HostDiscovery.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/signaling/HostDiscovery.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/supabase/SupabaseClient.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/supabase/SupabaseClient.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/ui/HomeFragment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/ui/HomeFragment.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/ui/HomeViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/ui/HomeViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/ui/SettingsFragment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/ui/SettingsFragment.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/util/SecurityUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/util/SecurityUtils.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/vpn/KamuiVpnService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/vpn/KamuiVpnService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/webrtc/TurnCredentialsManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/webrtc/TurnCredentialsManager.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/webrtc/WebRtcConfig.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/webrtc/WebRtcConfig.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/webrtc/WebRtcManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/webrtc/WebRtcManager.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/fragment_home.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/fragment_home.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/fragment_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/fragment_settings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/navigation/nav_graph.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/navigation/nav_graph.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle/libs.versions.toml" beforeDir="false" afterPath="$PROJECT_DIR$/gradle/libs.versions.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/schema.sql" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[]" />
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$">
+          <activation />
+        </task>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="KamuiNet" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="KamuiNet" type="f1a62948:ProjectNode" />
+                <item name="app" type="2d1252cf:ModuleNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="KamuiNet" type="f1a62948:ProjectNode" />
+                <item name="app" type="2d1252cf:ModuleNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="KamuiNet" type="f1a62948:ProjectNode" />
+                <item name="app" type="2d1252cf:ModuleNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="other" type="c8890929:TasksNode$1" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Kotlin Class" />
+      </list>
+    </option>
+  </component>
+  <component name="GenerateSignedApkSettings">
+    <option name="KEY_STORE_PATH" value="C:\Users\hp\Desktop\kamuinet-key.jks" />
+    <option name="KEY_ALIAS" value="key0" />
+    <option name="REMEMBER_PASSWORDS" value="true" />
+    <option name="BUILD_TARGET_KEY" value="apk" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/app/src/main/java/com/kamuinet/client/MainActivity.kt" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3IPokwULbXZrp8dOLVoMOiv682f" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Android App.app.executor": "Run",
+    "ApkExportedModule": "KamuiNet.app",
+    "Logcat.SavePath": "C:\\Users\\hp\\AndroidStudioProjects\\KamuiNet",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Notification.DisplayName-DoNotAsk-Android Notification Group": "Android Notification Group",
+    "Notification.DoNotAsk-Android Notification Group": "true",
+    "ResourceManagerPrefKey.ResourceType": "MIPMAP",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "com.google.services.firebase.aqiPopupShown": "true",
+    "git-widget-placeholder": "feature/native-hevtun-engine",
+    "implementationPlan.dismissed.01aa593d-98e0-4604-a512-06663bc0f144": "true",
+    "implementationPlan.dismissed.0f0e17e8-e260-4fcc-a7c5-ec0fae7b3d30": "true",
+    "implementationPlan.dismissed.1109eefa-702f-46b4-8930-b1bc950542ee": "true",
+    "implementationPlan.dismissed.197e89d4-bcb8-402b-898c-991f0842d8af": "true",
+    "implementationPlan.dismissed.232950e0-eb92-4428-b127-0f7a55655dfb": "true",
+    "implementationPlan.dismissed.314a9a1b-be9a-444e-bc57-90f964785f48": "true",
+    "implementationPlan.dismissed.43bc2d09-58bc-4b60-8c82-b45b4ae1f542": "true",
+    "implementationPlan.dismissed.4fbc0a22-e17b-4fd2-8e1d-f311c1e45ea7": "true",
+    "implementationPlan.dismissed.ada20790-4a8d-4364-bf9c-b0fb6b705f25": "true",
+    "implementationPlan.dismissed.bd23a051-5349-4c98-abf6-06bbfe55e956": "true",
+    "implementationPlan.dismissed.c14b1ab6-6984-49ea-b8c5-e657973f9e2f": "true",
+    "implementationPlan.dismissed.cce6cafb-8870-4ef0-a85e-e712d722f1be": "true",
+    "implementationPlan.dismissed.d6bcfa70-cf4f-43ac-96ad-b9c122480301": "true",
+    "implementationPlan.dismissed.e3689153-b34d-4a18-8042-eca453af3d52": "true",
+    "implementationPlan.dismissed.e3aee774-5ec3-4b30-a617-fc1e6100a86b": "true",
+    "implementationPlan.dismissed.e3ec2f17-00f4-479e-94a5-563dd2b73816": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/hp/AndroidStudioProjects/KamuiNet/app/src/main/res/drawable",
+    "settings.editor.selected.configurable": "templates.modelproviders.configurable"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\hp\AndroidStudioProjects\KamuiNet\app\src\main\res\drawable" />
+      <recent name="C:\Users\hp\AndroidStudioProjects\KamuiNet\app" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="app" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false">
+      <module name="KamuiNet.app" />
+      <option name="ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION" value="1" />
+      <option name="DEPLOY" value="true" />
+      <option name="DEPLOY_APK_FROM_BUNDLE" value="false" />
+      <option name="DEPLOY_AS_INSTANT" value="false" />
+      <option name="ARTIFACT_NAME" value="" />
+      <option name="PM_INSTALL_OPTIONS" value="" />
+      <option name="ALL_USERS" value="false" />
+      <option name="ALWAYS_INSTALL_WITH_PM" value="false" />
+      <option name="ALLOW_ASSUME_VERIFIED" value="false" />
+      <option name="CLEAR_APP_STORAGE" value="false" />
+      <option name="DYNAMIC_FEATURES_DISABLED_LIST" value="" />
+      <option name="ACTIVITY_EXTRA_FLAGS" value="" />
+      <option name="MODE" value="default_activity" />
+      <option name="RESTORE_ENABLED" value="false" />
+      <option name="RESTORE_FILE" value="" />
+      <option name="RESTORE_FRESH_INSTALL_ONLY" value="false" />
+      <option name="CLEAR_LOGCAT" value="false" />
+      <option name="SHOW_LOGCAT_AUTOMATICALLY" value="false" />
+      <option name="TARGET_SELECTION_MODE" value="DEVICE_AND_SNAPSHOT_COMBO_BOX" />
+      <option name="DEBUGGER_TYPE" value="Auto" />
+      <Auto>
+        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
+        <option name="SHOW_STATIC_VARS" value="true" />
+        <option name="WORKING_DIR" value="" />
+        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
+        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+      </Auto>
+      <Hybrid>
+        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
+        <option name="SHOW_STATIC_VARS" value="true" />
+        <option name="WORKING_DIR" value="" />
+        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
+        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+      </Hybrid>
+      <Java>
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+      </Java>
+      <Native>
+        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
+        <option name="SHOW_STATIC_VARS" value="true" />
+        <option name="WORKING_DIR" value="" />
+        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
+        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+      </Native>
+      <Profilers>
+        <option name="ADVANCED_PROFILING_ENABLED" value="false" />
+        <option name="STARTUP_PROFILING_ENABLED" value="false" />
+        <option name="STARTUP_CPU_PROFILING_ENABLED" value="false" />
+        <option name="STARTUP_CPU_PROFILING_CONFIGURATION_NAME" value="Java/Kotlin Method Sample (legacy)" />
+        <option name="STARTUP_NATIVE_MEMORY_PROFILING_ENABLED" value="false" />
+        <option name="NATIVE_MEMORY_SAMPLE_RATE_BYTES" value="2048" />
+      </Profilers>
+      <option name="DEEP_LINK" value="" />
+      <option name="ACTIVITY" value="" />
+      <option name="ACTIVITY_CLASS" value="" />
+      <option name="SEARCH_ACTIVITY_IN_GLOBAL_SCOPE" value="false" />
+      <option name="SKIP_ACTIVITY_VALIDATION" value="false" />
+      <method v="2">
+        <option name="Android.Gradle.BeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d6ab606f-da4b-40a5-960e-cfaae31f5a3c" name="Changes" comment="" />
+      <created>1787675713288</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1787675713288</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="play_dynamic_filters_status">
+    <option name="appIdToCheckInfo">
+      <map>
+        <entry key="com.kamuinet.client">
+          <value>
+            <CheckInfo lastCheckTimestamp="1789904356852" />
+          </value>
+        </entry>
+        <entry key="com.kamuinet.client.test">
+          <value>
+            <CheckInfo lastCheckTimestamp="1789904356853" />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
