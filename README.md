@@ -1,12 +1,4 @@
-<div align="center">
-  
-# 🌐 KamuiNet: Decentralized P2P Tunneling
-### *Secure, Private, and Borderless Connectivity*
-
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-purple.svg)](https://kotlinlang.org/)
-[![Android](https://img.shields.io/badge/Android-SDK_34-green.svg)](https://developer.android.com/)
 [![WebRTC](https://img.shields.io/badge/WebRTC-Enabled-blue.svg)](https://webrtc.org/)
-[![License](https://img.shields.io/badge/License-Proprietary-red.svg)]()
 
 ---
 
@@ -16,19 +8,38 @@
 
 </div>
 
+## 🔄 How KamuiNet Works
+
+The magic of KamuiNet lies in our custom **P2P Tunneling Engine**. Here is how data flows from one device to another:
+
+```mermaid
+graph LR
+    A["📱 Device A (Client)"] -- "Encrypted P2P Tunnel" --> B["🔄 KamuiNet Relay (Signaling)"]
+    B -- "Handshake" --> A
+    B -- "Handshake" --> C["📱 Device B (Host)"]
+    A <== "Direct Data Stream (WebRTC)" ==> C
+    style A fill:#f96,stroke:#333,stroke-width:2px
+    style C fill:#69f,stroke:#333,stroke-width:2px
+    style B fill:#ddd,stroke:#333,stroke-dasharray: 5 5
+```
+
+1.  **Handshake**: Devices discover each other through our lightweight signaling relay.
+2.  **Tunneling**: Once connected, an encrypted **WebRTC** peer-to-peer connection is established.
+3.  **Routing**: The `KamuiVpnService` routes all requested traffic through this secure link.
+
+---
+
 ## 🚀 Key Features
 
 *   **P2P Tunneling**: High-performance data routing between peers using WebRTC.
 *   **Encrypted VPN Service**: System-wide secure tunnel for local network sharing.
 *   **Real-time Connectivity**: Instant handshaking via custom signaling architecture.
 *   **Privacy-First Design**: Zero-trust approach to data routing.
-*   **Barcode Integration**: Seamless device pairing via built-in QR Scanner.
+*   **Secure Pairing**: Integrated QR scanning for trusted device identification.
 
 ---
 
 ## 🛠 Technical Architecture
-
-KamuiNet is built on a modern, reactive stack designed for stability and low-latency performance:
 
 | Component | Technology |
 | :--- | :--- |
@@ -42,27 +53,32 @@ KamuiNet is built on a modern, reactive stack designed for stability and low-lat
 
 ---
 
-## 🏗 Project Structure
+## 📜 Development History & Evolution
 
-```text
-com.kamuinet.client
-├── di/             # Dependency Injection (Hilt)
-├── vpn/            # KamuiVpnService (System-level tunnel)
-├── webrtc/         # P2P connection & stream management
-├── signaling/      # Real-time connection handshake logic
-├── router/         # Traffic routing & KamuiHostService
-├── supabase/       # Backend integration
-└── ui/             # Jetpack Compose / View interfaces
-```
+KamuiNet has evolved through rigorous engineering cycles focusing on security, architectural integrity, and decentralized performance. 
+
+### 1. Foundation & Architecture
+*   **Modular Design**: Implemented a scalable architecture separating `vpn`, `webrtc`, `signaling`, `router`, and `data` layers.
+*   **Supabase Integration**: Established a robust backend for signaling and authentication using Ktor.
+*   **DI Refinement**: Integrated Hilt for modular dependency management.
+
+### 2. Networking & Security
+*   **VPN Tunneling**: Implemented `KamuiVpnService` with system-level permissions for secure data routing.
+*   **P2P Optimization**: Tuned WebRTC for low-latency streaming and NAT traversal.
+*   **Security hardening**: Integrated `security-crypto` library for local data encryption and secure key handling.
+
+### 3. Modernization & Optimization
+*   **Project Hygiene**: Implemented strict `.gitignore` to exclude binary blobs, build artifacts, and development-specific temporary folders.
+*   **Tooling**: Refined Gradle configuration (Kotlin 2.0.21, KSP) to ensure optimal build times and dependency stability.
+*   **Documentation**: Standardized project documentation and architecture reporting for maintainability.
 
 ---
 
-## 🛡 Security & Privacy
+## 🛡 Why KamuiNet?
 
-KamuiNet operates on the principle that your data belongs to you. By tunneling directly between devices:
-1.  **Reduced Attack Surface**: No centralized proxy server to compromise.
-2.  **Encryption**: End-to-end encryption for all tunneled traffic.
-3.  **Local Control**: User-initiated connections via cryptographically verified pairing.
+*   **No Centralized Vulnerabilities**: Peer-to-peer architecture ensures your data doesn't pass through insecure third-party middle-boxes.
+*   **Performance**: Optimized for low-latency, real-time data streaming.
+*   **Future-Ready**: Built on modern Android standards (API 34, Material 3, Jetpack components).
 
 ---
 
