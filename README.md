@@ -10,17 +10,11 @@
 
 </div>
 
-<!-- HERO / STARTING ANIMATION -->
-<p align="center">
-  <!-- Replace `docs/hero.gif` with an actual animated GIF in the repo to show a start/load animation -->
-  <img src="https://raw.githubusercontent.com/jawadahmadliaqat-dot/KAMUINET/docs/readme-polish/docs/hero.gif" alt="KamuiNet hero animation" width="560"/>
-</p>
-
 ## Executive summary
 
-KamuiNet is a privacy-first P2P tunneling ecosystem intended for Android devices. It uses WebRTC for direct peer-to-peer data channels, Supabase/Postgres for discovery and realtime signaling, and an optional Cloudflare Worker proxy for endpoint masking/fallback. The repository currently contains infrastructure artifacts (database schema, worker, Gradle config), dependency catalog, and documentation scaffolding — but the Android `:app` source module (the main runtime) is missing from the current snapshot.
+KamuiNet is a privacy-first P2P tunneling ecosystem intended for Android devices. It uses WebRTC for direct peer-to-peer data channels, Supabase/Postgres for discovery and realtime signaling, and [...]
 
-This document is a report: it reads the repository artifacts, extracts evidence, lists findings and risks, and provides a polished README suitable for the project landing page. It also includes setup and deployment instructions, sample metrics queries you can use to build graphs, and an actionable backlog.
+This document is a report: it reads the repository artifacts, extracts evidence, lists findings and risks, and provides a polished README suitable for the project landing page. It also includes se[...]
 
 ---
 
@@ -48,7 +42,7 @@ This document is a report: it reads the repository artifacts, extracts evidence,
 
 ## Purpose (clear, short)
 
-KamuiNet enables private, low-latency, encrypted direct connectivity between mobile devices using WebRTC for transport and a lightweight Supabase-backed signaling layer for discovery and handshake.
+KamuiNet enables private, low-latency, encrypted direct connectivity between mobile devices using WebRTC for transport and a lightweight Supabase-backed signaling layer for discovery and handshake[...]
 
 Primary use cases:
 - Peer-to-peer file transfer between devices behind NAT
@@ -95,7 +89,7 @@ Risk notes:
 
 ## Polished README content (report-style)
 
-This section is intended to be the landing content for README.md (already placed in this branch). It includes a professional header, an executive summary, architecture diagrams, setup instructions, and a report-style analysis of the codebase.
+This section is intended to be the landing content for README.md (already placed in this branch). It includes a professional header, an executive summary, architecture diagrams, setup instructions[...]
 
 Key excerpts from repo artifacts (evidence):
 
