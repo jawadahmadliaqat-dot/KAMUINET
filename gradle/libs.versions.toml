@@ -12,6 +12,7 @@ hilt = "2.51.1"
 room = "2.6.1"
 ksp = "2.0.21-1.0.25"
 lifecycle = "2.8.1"
+security-crypto = "1.1.0-alpha06"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

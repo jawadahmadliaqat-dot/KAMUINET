@@ -66,3 +66,10 @@ data class HostInfo(
     val socksHost: String,
     val socksPort: Int
 )
+
+data class AppInfo(
+    val name: String,
+    val packageName: String,
+    val icon: android.graphics.drawable.Drawable?,
+    var isSelected: Boolean
+)

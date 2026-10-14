@@ -36,8 +36,8 @@ class KamuiHostService : Service() {
     
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     
-    private lateinit var wakeLock: PowerManager.WakeLock
-    private lateinit var wifiLock: WifiManager.WifiLock
+    private var wakeLock: PowerManager.WakeLock? = null
+    private var wifiLock: WifiManager.WifiLock? = null
     
     private var hostRtcManager: WebRtcManager? = null
     private var hostRelayManager: HostRelayManager? = null
@@ -56,7 +56,6 @@ class KamuiHostService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        acquireLocks()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -76,6 +75,7 @@ class KamuiHostService : Service() {
         
         networkType = IpUtils.getNetworkType(this)
         
+        acquireLocks()
         Log.d(TAG, "Starting host on $networkType ($localIp)")
         startForeground(localIp)
         
@@ -161,6 +161,9 @@ class KamuiHostService : Service() {
                     onPacketReceived = { data ->
                         hostRelayManager?.onClientPacket(data)
                     }
+                    onBufferedAmountLow = {
+                        hostRelayManager?.onBufferedAmountLow()
+                    }
                     onChannelStateChanged = { state ->
                         Log.d(TAG, "Channel State Changed: $state")
                         if (state == DataChannel.State.OPEN) {
@@ -239,15 +242,26 @@ class KamuiHostService : Service() {
     }
 
     private fun acquireLocks() {
-        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "KamuiNet::HostWakeLock").apply {
+        if (wakeLock?.isHeld == true) return
+
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "KamuiNet:HostWakeLock").apply {
+            acquire(24 * 60 * 60 * 1000L) // 24 hours
+        }
+
+        val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "KamuiNet:HostWifiLock").apply {
             acquire()
         }
-        
-        val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        wifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "KamuiNet::HostWifiLock").apply {
-            acquire()
-        }
+        Log.d(TAG, "High-performance locks acquired")
+    }
+
+    private fun releaseLocks() {
+        runCatching { if (wakeLock?.isHeld == true) wakeLock?.release() }
+        runCatching { if (wifiLock?.isHeld == true) wifiLock?.release() }
+        wakeLock = null
+        wifiLock = null
+        Log.d(TAG, "Locks released")
     }
 
     private fun createNotificationChannel() {
@@ -270,8 +284,7 @@ class KamuiHostService : Service() {
         hostRelayManager?.shutdown()
         hostRtcManager?.close()
         
-        if (wakeLock.isHeld) wakeLock.release()
-        if (wifiLock.isHeld) wifiLock.release()
+        releaseLocks()
         
         scope.cancel()
         super.onDestroy()

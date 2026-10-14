@@ -78,8 +78,17 @@ class HomeFragment : Fragment() {
     private lateinit var activityLabel: TextView
     private lateinit var btnRetry: Button
     private lateinit var loadingIndicator: View
+    private lateinit var savingsCard: View
+    private lateinit var savingsValue: TextView
+    private lateinit var transferValue: TextView
+    private lateinit var socialCarrierStatus: TextView
+    private lateinit var savingsProgress: com.google.android.material.progressindicator.LinearProgressIndicator
+    private lateinit var switchSmartRouter: com.google.android.material.materialswitch.MaterialSwitch
+    private lateinit var switchTurboMode: com.google.android.material.materialswitch.MaterialSwitch
+
     
     private lateinit var lightRed: View
+
     private lateinit var lightYellow: View
     private lateinit var lightGreen: View
 
@@ -142,13 +151,28 @@ class HomeFragment : Fragment() {
         activityLabel = view.findViewById(R.id.activity_label)
         btnRetry = view.findViewById(R.id.btn_retry)
         loadingIndicator = view.findViewById(R.id.loading_indicator)
+        savingsCard = view.findViewById(R.id.card_savings)
+        savingsValue = view.findViewById(R.id.savings_value)
+        transferValue = view.findViewById(R.id.transfer_value)
+        socialCarrierStatus = view.findViewById(R.id.social_carrier_status)
+        savingsProgress = view.findViewById(R.id.savings_progress)
+        switchSmartRouter = view.findViewById(R.id.switch_smart_router)
+        switchTurboMode = view.findViewById(R.id.switch_turbo_mode)
 
         lightRed = view.findViewById(R.id.light_red)
+
+
         lightYellow = view.findViewById(R.id.light_yellow)
         lightGreen = view.findViewById(R.id.light_green)
         
         authPanel = view.findViewById(R.id.auth_panel)
         actionPanel = view.findViewById(R.id.action_panel)
+        
+        // --- FLICKER PREVENTION: Hide panels until status is confirmed ---
+        authPanel.visibility = View.GONE
+        actionPanel.visibility = View.GONE
+        loadingIndicator.visibility = View.VISIBLE
+
         btnGoogleLogin = view.findViewById(R.id.btn_google_login)
         btnSignIn = view.findViewById(R.id.btn_sign_in)
         btnSwitchAuth = view.findViewById(R.id.btn_switch_auth)
@@ -157,7 +181,6 @@ class HomeFragment : Fragment() {
 
         applyTranslations()
         observeViewModel()
-        setupSignalingListener()
         checkBatteryOptimization()
 
         kamuiIdLabel.text = "Your ID: ${HostDiscovery.myDeviceId.take(12)}"
@@ -207,7 +230,25 @@ class HomeFragment : Fragment() {
             else handleEmailSignIn()
         }
 
+        switchSmartRouter.setOnCheckedChangeListener { _, isChecked ->
+            KamuiVpnService.instance?.let { service ->
+                service.setSmartRouting(isChecked)
+                log("Smart Router: ${if (isChecked) "ON" else "OFF"}")
+            }
+        }
+
+        switchTurboMode.setOnCheckedChangeListener { _, isChecked ->
+            KamuiVpnService.instance?.let { service ->
+                service.setTurboMode(isChecked)
+                log("Turbo Mode: ${if (isChecked) "ON" else "OFF"}")
+            }
+            viewModel.setTurboMode(isChecked)
+        }
+
+
+
         btnSwitchAuth.setOnClickListener {
+
             isSignUpMode = !isSignUpMode
             if (isSignUpMode) {
                 btnSignIn.text = "Sign up"
@@ -430,11 +471,11 @@ class HomeFragment : Fragment() {
         sharingDetail.text = TranslationManager.tr("host_first")
     }
 
-    private fun setupSignalingListener() {
+    private fun setupSignalingListener(uid: String) {
         viewLifecycleOwner.lifecycleScope.launch {
             HostDiscovery.listenForSignaling(
                 id = "HomeUI",
-                explicitUid = AuthManager.currentUserId(),
+                explicitUid = uid,
                 onSdp = { sdp, type, fromUid, fromDeviceId ->
                     // Client-side: Handle answer from Host
                     if (type == "answer" && !viewModel.uiState.value.isSharing) {
@@ -599,8 +640,30 @@ class HomeFragment : Fragment() {
                 peerLabel.text = state.peerInfo
                 endpointInfo.text = state.endpointInfo
                 
-                authPanel.visibility = if (state.isLoggedIn) View.GONE else View.VISIBLE
-                actionPanel.visibility = if (state.isLoggedIn) View.VISIBLE else View.GONE
+                // --- FLICKER FIX: Handle Auth Visibility Based on explicit Tri-State ---
+                when (state.authStatus) {
+                    AuthUiStatus.AUTHENTICATED -> {
+                        loadingIndicator.visibility = View.GONE
+                        authPanel.visibility = View.GONE
+                        actionPanel.visibility = View.VISIBLE
+                        
+                        // AUTO-START LISTENER with valid UID
+                        if (!listeningStarted && state.uid != null) {
+                            listeningStarted = true
+                            setupSignalingListener(state.uid)
+                        }
+                    }
+                    AuthUiStatus.UNAUTHENTICATED -> {
+                        loadingIndicator.visibility = View.GONE
+                        authPanel.visibility = View.VISIBLE
+                        actionPanel.visibility = View.GONE
+                        listeningStarted = false
+                    }
+                    AuthUiStatus.LOADING -> {
+                        loadingIndicator.visibility = View.VISIBLE
+                        // Both panels remain GONE to prevent flicker
+                    }
+                }
 
                 // Update Share Button UI based on state
                 if (state.isSharing) {
@@ -611,11 +674,9 @@ class HomeFragment : Fragment() {
                     btnShare.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.kamui_accent))
                 }
 
-                // RETRY LISTENER ONCE LOGGED IN
-                if (state.isLoggedIn && !listeningStarted) {
-                    listeningStarted = true
-                    setupSignalingListener()
-                }
+                switchTurboMode.isChecked = state.isTurboMode
+
+
 
                 if (state.linkState == "active") {
                     loadingIndicator.visibility = View.GONE
@@ -623,9 +684,28 @@ class HomeFragment : Fragment() {
                     linkTypeLabel.visibility = View.VISIBLE
                     linkTypeLabel.text = state.linkType
                     linkTypeLabel.setTextColor(if (state.linkType.contains("Relay")) Color.parseColor("#facc15") else Color.parseColor("#4ade80"))
+                    
+                    // Update Savings UI
+                    val mbSaved = state.bytesSaved / (1024.0 * 1024.0)
+                    val mbTotal = (state.bytesReceived + state.bytesSent) / (1024.0 * 1024.0)
+                    
+                    savingsValue.text = String.format("%.2f MB", mbSaved)
+                    transferValue.text = String.format("%.0f MB", mbTotal)
+                    
+                    val isMasked = state.linkType.contains("Direct") || state.linkType.contains("P2P")
+                    socialCarrierStatus.text = if (isMasked) "Social Carrier: Masked as WhatsApp" else "Social Carrier: Direct Mode"
+                    socialCarrierStatus.setTextColor(if (isMasked) Color.parseColor("#38bdf8") else Color.parseColor("#94a3b8"))
+
+                    // Show percentage savings in progress bar (cap at 100%)
+
+                    val percent = if (mbTotal > 0) ((mbSaved / (mbSaved + mbTotal)) * 100).toInt() else 0
+                    savingsProgress.progress = percent.coerceIn(0, 100)
+                    savingsCard.visibility = View.VISIBLE
                 } else {
                     linkTypeLabel.visibility = View.GONE
+                    savingsCard.visibility = View.GONE
                 }
+
 
                 // Auto-scroll logs
                 view?.findViewById<android.widget.ScrollView>(R.id.log_scroll)?.let { scroll ->

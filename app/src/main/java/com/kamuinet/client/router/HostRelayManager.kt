@@ -21,14 +21,22 @@ class HostRelayManager(
     private val protectUdp: ((DatagramSocket) -> Boolean)? = null
 ) {
     private val TAG = "HostRelay"
-    private val relayScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    
+    // JOKER OPTIMIZATION: Limit total threads to 32 to prevent Infinix from heating up
+    // Dispatchers.IO by default can spawn 64+ threads which causes GC pressure.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val relayScope = CoroutineScope(SupervisorJob() + Dispatchers.IO.limitedParallelism(32))
+    
     private val running = AtomicBoolean(true)
-    private val MAX_SESSIONS = 200 // Increased to support browser port randomization
+    private val MAX_SESSIONS = 500 // Increased for modern browsers
+    private val resumeSignal = kotlinx.coroutines.channels.Channel<Unit>(kotlinx.coroutines.channels.Channel.CONFLATED)
 
     private data class TcpSession(
         val socket: Socket,
         val flowId: Int,
         val closed: AtomicBoolean = AtomicBoolean(false),
+        val serverEof: AtomicBoolean = AtomicBoolean(false),
+        val clientFin: AtomicBoolean = AtomicBoolean(false),
         val lastActivity: AtomicLong = AtomicLong(System.currentTimeMillis()),
         val writeChannel: kotlinx.coroutines.channels.Channel<ByteArray> = kotlinx.coroutines.channels.Channel(100)
     )
@@ -50,6 +58,10 @@ class HostRelayManager(
         startIdleReaper()
     }
 
+    fun onBufferedAmountLow() {
+        resumeSignal.trySend(Unit)
+    }
+
     /**
      * Handle framed commands from the peer (Client)
      */
@@ -59,9 +71,24 @@ class HostRelayManager(
 
         when (frame.type) {
             FramingProtocol.ACTION_CONNECT -> handleTcpOpen(frame)
-            FramingProtocol.ACTION_DATA -> handleTcpData(frame)
+            FramingProtocol.ACTION_DATA, FramingProtocol.ACTION_FRAG_START -> handleTcpData(frame)
             FramingProtocol.ACTION_CLOSE -> closeTcpFlow(frame.flowId)
+            FramingProtocol.ACTION_FIN -> handleTcpFin(frame.flowId)
             FramingProtocol.ACTION_UDP_DATA -> handleUdpData(frame)
+        }
+    }
+
+    private fun handleTcpFin(flowId: Int) {
+        val session = tcpSessions[flowId] ?: return
+        if (session.clientFin.compareAndSet(false, true)) {
+            relayScope.launch(Dispatchers.IO) {
+                try {
+                    if (!session.socket.isOutputShutdown) {
+                        session.socket.shutdownOutput()
+                    }
+                } catch (_: Exception) {}
+                checkTeardown(session)
+            }
         }
     }
 
@@ -76,7 +103,15 @@ class HostRelayManager(
         val port = frame.port
         val flowId = frame.flowId
 
-        // DoH Guard: Block Google DNS-over-HTTPS only. Allow Cloudflare (1.1.1.1) for web tests.
+        // Aggressive Data Savings: Host-side Ad-Blocking
+        if (AdBlocker.isAd(host)) {
+            Log.d(TAG, "Aggressive Savings: Blocking AD flow to $host (Flow $flowId)")
+            sendToPeer(FramingProtocol.buildClose(flowId), true)
+            return
+        }
+
+        // DoH Guard: Block Google DNS-over-HTTPS only.
+
         if (port == 443 && (host == "8.8.8.8" || host == "8.8.4.4")) {
             Log.d(TAG, "Blocking DoH storm to $host:443 for Flow $flowId")
             sendToPeer(FramingProtocol.buildClose(flowId), true)
@@ -93,10 +128,12 @@ class HostRelayManager(
                 }
                 
                 sock.tcpNoDelay = true
+                sock.setSoLinger(true, 0) // Immediate release of file descriptor
+                sock.receiveBufferSize = 64 * 1024
+                sock.sendBufferSize = 64 * 1024
                 withContext(Dispatchers.IO) {
-                    sock.connect(InetSocketAddress(host, port), 5000) // Increased to 5s for reliability
-                    sock.sendBufferSize = 65536
-                    sock.receiveBufferSize = 65536
+                    // 3-second fast fail: don't let dead/speculative connects hang the thread pool
+                    sock.connect(InetSocketAddress(host, port), 3000)
                 }
 
                 val session = TcpSession(sock, flowId)
@@ -109,8 +146,8 @@ class HostRelayManager(
                         log("Draining ${snapshot.size} buffered packets for Flow $flowId")
                         snapshot.forEach { payload ->
                             try {
-                                if (!session.closed.get() && !session.writeChannel.isClosedForSend) {
-                                    session.writeChannel.trySend(payload)
+                                if (!session.closed.get()) {
+                                    session.writeChannel.send(payload)
                                 }
                             } catch (e: Exception) {
                                 Log.w(TAG, "Failed to send buffered packet to flow $flowId: ${e.message}")
@@ -124,6 +161,14 @@ class HostRelayManager(
                 
                 log("TCP Flow $flowId opened → $host:$port")
                 startTcpReader(session)
+            } catch (e: java.net.SocketException) {
+                // Silently handle common Chrome aborts (Broken pipe, Connection reset)
+                pendingData.remove(flowId)
+                sendToPeer(FramingProtocol.buildClose(flowId), true)
+            } catch (e: java.io.IOException) {
+                // Silently handle IO errors during rapid browser connection storms
+                pendingData.remove(flowId)
+                sendToPeer(FramingProtocol.buildClose(flowId), true)
             } catch (e: Exception) {
                 log("TCP Flow $flowId failed: ${e.message}")
                 pendingData.remove(flowId)
@@ -147,12 +192,18 @@ class HostRelayManager(
         
         session.lastActivity.set(System.currentTimeMillis())
         
-        try {
-            if (!session.closed.get() && !session.writeChannel.isClosedForSend) {
-                session.writeChannel.trySend(payload)
+        // JOKER OPTIMIZATION: Direct channel send without per-packet coroutine launch.
+        // This eliminates coroutine explosion during high-speed 720p streams.
+        val result = session.writeChannel.trySend(payload)
+        if (!result.isSuccess) {
+            // If channel is full, then launch a coroutine to wait (Backpressure)
+            relayScope.launch {
+                try {
+                    if (!session.closed.get()) {
+                        session.writeChannel.send(payload)
+                    }
+                } catch (_: Exception) {}
             }
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed to send packet to flow ${frame.flowId}: ${e.message}")
         }
     }
 
@@ -164,9 +215,16 @@ class HostRelayManager(
                 for (data in session.writeChannel) {
                     withContext(Dispatchers.IO) {
                         out.write(data)
-                        out.flush()
+                        // Joker Stealth: Force small writes into separate segments
+                        if (data.size <= 5) {
+                            out.flush() 
+                        }
                     }
                 }
+            } catch (e: java.net.SocketException) {
+                // Normal for Chrome aborting speculative connections
+            } catch (e: java.io.IOException) {
+                // Silently handle IO errors during connection storms
             } catch (e: Exception) {
                 if (!session.closed.get()) Log.d(TAG, "TCP writer ${session.flowId} error: ${e.message}")
             } finally {
@@ -181,15 +239,16 @@ class HostRelayManager(
             val buf = ByteArray(32 * 1024)
             try {
                 val input: InputStream = session.socket.getInputStream()
-                while (running.get() && !session.closed.get()) {
-                    // Backpressure: If WebRTC buffer > 1MB, wait
-                    while (running.get() && !session.closed.get() && getBufferedAmount() > 1024 * 1024) {
-                        delay(20)
+                while (running.get() && !session.closed.get() && !session.serverEof.get()) {
+                    // Backpressure: If WebRTC buffer > 512KB, pause reading
+                    if (getBufferedAmount() > 512 * 1024) {
+                        resumeSignal.receive()
                     }
 
                     val n = withContext(Dispatchers.IO) { input.read(buf) }
                     if (n < 0) {
-                        log("TCP Flow ${session.flowId}: EOF reached")
+                        log("TCP Flow ${session.flowId}: EOF reached (Server)")
+                        session.serverEof.set(true)
                         break
                     }
                     if (n == 0) continue
@@ -199,13 +258,31 @@ class HostRelayManager(
                     val dataFrame = FramingProtocol.buildData(FramingProtocol.ACTION_DATA, session.flowId, payload)
                     sendToPeer(dataFrame, true)
                 }
+            } catch (e: java.net.SocketException) {
+                // Normal for aborted browser pre-connections
+            } catch (e: java.io.IOException) {
+                // Silently handle IO errors during storms
             } catch (e: Exception) {
                 if (!session.closed.get()) Log.d(TAG, "TCP reader ${session.flowId} end: ${e.message}")
             } finally {
-                // Explicitly notify peer on EOF or Exception before cleaning up
-                sendToPeer(FramingProtocol.buildClose(session.flowId), true)
-                closeTcpFlow(session.flowId)
+                if (!session.closed.get()) {
+                    if (session.serverEof.get()) {
+                        // Notify peer of half-close
+                        sendToPeer(FramingProtocol.buildData(FramingProtocol.ACTION_FIN, session.flowId, ByteArray(0)), true)
+                        checkTeardown(session)
+                    } else {
+                        // Error or force close
+                        sendToPeer(FramingProtocol.buildClose(session.flowId), true)
+                        closeTcpFlow(session.flowId)
+                    }
+                }
             }
+        }
+    }
+
+    private fun checkTeardown(session: TcpSession) {
+        if (session.serverEof.get() && session.clientFin.get()) {
+            closeTcpFlow(session.flowId)
         }
     }
 
@@ -214,6 +291,11 @@ class HostRelayManager(
         val payload = frame.payload ?: return
         val host = frame.host ?: return
         val port = frame.port
+
+        if (port == 443) {
+            Log.d(TAG, "Blocking QUIC (UDP 443) for Flow $flowId - Force TCP fallback")
+            return
+        }
 
         var session = udpSessions[flowId]
         if (session == null) {
@@ -283,8 +365,8 @@ class HostRelayManager(
             while (running.get()) {
                 delay(60_000)
                 val now = System.currentTimeMillis()
-                val tcpTimeout = 90_000L
-                val udpTimeout = 15_000L // Fast cleanup for DNS queries
+                val tcpTimeout = 300_000L // Increased to 5 mins for better Keep-Alive
+                val udpTimeout = 30_000L 
 
                 tcpSessions.forEach { (id, _) ->
                     if (now - (tcpSessions[id]?.lastActivity?.get() ?: 0) > tcpTimeout) {
@@ -304,11 +386,12 @@ class HostRelayManager(
     private fun startIdleReaper() {
         relayScope.launch {
             while (isActive) {
-                delay(10_000)
+                delay(30_000)
                 val now = System.currentTimeMillis()
-                val idleSessions = tcpSessions.values.filter { now - it.lastActivity.get() > 15_000 }
+                // Stealth Optimization: Only reap truly dead flows (2 mins)
+                val idleSessions = tcpSessions.values.filter { now - it.lastActivity.get() > 120_000 }
                 idleSessions.forEach { session ->
-                    log("Reaping idle TCP flow ${session.flowId} (15s timeout)")
+                    log("Reaping dead TCP flow ${session.flowId} (120s timeout)")
                     closeTcpFlow(session.flowId)
                 }
             }

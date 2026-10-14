@@ -37,4 +37,10 @@ object AppModule {
     fun provideUsageDao(db: AppDatabase): UsageDao {
         return db.usageDao()
     }
+
+    @Provides
+    @Singleton
+    fun provideAppConfigRepository(@ApplicationContext context: Context): com.kamuinet.client.data.AppConfigRepository {
+        return com.kamuinet.client.data.AppConfigRepository(context)
+    }
 }

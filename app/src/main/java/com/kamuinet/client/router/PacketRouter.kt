@@ -4,6 +4,7 @@ object PacketRouter {
 
     const val PROTO_TCP = 6
     const val PROTO_UDP = 17
+    const val PROTO_ICMP = 1
 
     data class FlowKey(
         val srcIp: String,
@@ -173,11 +174,11 @@ object PacketRouter {
             out[th + 15] = 0xFF.toByte()
             
             if (isSynAck) {
-                // MSS Option: Type=2, Len=4, Value=1160 (0x0488) - Matches 1200 MTU
+                // MSS Option: Type=2, Len=4, Value=1200 (0x04B0) - Optimized for 1280 MTU tunnel
                 out[th + 20] = 2
                 out[th + 21] = 4
                 out[th + 22] = 0x04.toByte()
-                out[th + 23] = 0x88.toByte()
+                out[th + 23] = 0xB0.toByte()
             }
         } else {
             val udpLen = 8 + payload.size
@@ -255,5 +256,35 @@ object PacketRouter {
             sum = (sum and 0xFFFF) + (sum shr 16)
         }
         return sum.inv() and 0xFFFF
+    }
+
+    fun buildIcmpFragmentationNeeded(original: ParsedPacket, mtu: Int): ByteArray {
+        val totalLen = 20 + 8 + original.ipHeaderLen + 8
+        val out = ByteArray(totalLen)
+        
+        out[0] = 0x45.toByte()
+        out[1] = 0
+        out[2] = ((totalLen shr 8) and 0xFF).toByte()
+        out[3] = (totalLen and 0xFF).toByte()
+        out[8] = 64
+        out[9] = PROTO_ICMP.toByte()
+        writeIp(out, 12, original.dstIp)
+        writeIp(out, 16, original.srcIp)
+        
+        val th = 20
+        out[th] = 3 // Type 3
+        out[th + 1] = 4 // Code 4
+        out[th + 6] = ((mtu shr 8) and 0xFF).toByte()
+        out[th + 7] = (mtu and 0xFF).toByte()
+        
+        val icmpSum = checksum(out, th, totalLen - th)
+        out[th + 2] = ((icmpSum shr 8) and 0xFF).toByte()
+        out[th + 3] = (icmpSum and 0xFF).toByte()
+        
+        val ipCsum = checksum(out, 0, 20)
+        out[10] = ((ipCsum shr 8) and 0xFF).toByte()
+        out[11] = (ipCsum and 0xFF).toByte()
+        
+        return out
     }
 }

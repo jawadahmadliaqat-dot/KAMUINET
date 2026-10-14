@@ -33,9 +33,15 @@ object KamuiSupabase {
     }
 
     val client: SupabaseClient by lazy {
+        val url = if (BuildConfig.SUPABASE_URL.isNotBlank()) BuildConfig.SUPABASE_URL 
+                  else com.kamuinet.client.util.CryptoUtils.reveal("DA0fDBoMCgwQCBA=") // Placeholder for obfuscated fallback
+        
+        val key = if (BuildConfig.SUPABASE_KEY.isNotBlank()) BuildConfig.SUPABASE_KEY
+                  else com.kamuinet.client.util.CryptoUtils.reveal("DA0fDBoMCgwQCBA=")
+
         createSupabaseClient(
-            supabaseUrl = SUPABASE_URL,
-            supabaseKey = SUPABASE_ANON_KEY
+            supabaseUrl = url,
+            supabaseKey = key
         ) {
             install(Auth)
             install(Postgrest)

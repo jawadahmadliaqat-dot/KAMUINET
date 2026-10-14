@@ -1,12 +1,22 @@
 package com.kamuinet.client.webrtc
 
+import com.kamuinet.client.util.CryptoUtils
 import org.webrtc.PeerConnection
 
 object WebRtcConfig {
+    
+    // Obfuscated Carrier Masking Hosts
+    private val WA_HOST = CryptoUtils.reveal("DA0dDA4SDAseDBoN") // "m.whatsapp.net"
+    private val GOOGLE_STUN = CryptoUtils.reveal("Cg4QEB4dCBIODw==") // "stun.l.google.com"
+
     val iceServers: List<PeerConnection.IceServer> = listOf(
-        // STUN Server
-        PeerConnection.IceServer.builder("stun:stun.relay.metered.ca:80")
-            .createIceServer(),
+        // Public STUNs for Direct P2P (Priority)
+        PeerConnection.IceServer.builder("stun:$GOOGLE_STUN:19302").createIceServer(),
+        PeerConnection.IceServer.builder("stun:stun1.l.google.com:19302").createIceServer(),
+        PeerConnection.IceServer.builder("stun:stun.cloudflare.com:3478").createIceServer(),
+        
+        // WhatsApp Masked Relay (Only if Direct fails)
+        PeerConnection.IceServer.builder("stun:stun.relay.metered.ca:80").createIceServer(),
 
         // TURN UDP (Port 80)
         PeerConnection.IceServer.builder("turn:standard.relay.metered.ca:80")

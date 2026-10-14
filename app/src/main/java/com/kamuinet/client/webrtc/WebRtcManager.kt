@@ -32,10 +32,13 @@ class WebRtcManager(
 
     private val TAG = "WebRtcManager"
     private var peerConnection: PeerConnection? = null
-    private var dataChannel: DataChannel? = null
+    private val dataChannels = mutableListOf<DataChannel>()
+    @Volatile var turboMode: Boolean = false
     
-    private val sendMutex = Mutex()
-    private val sendScope = CoroutineScope(Dispatchers.IO.limitedParallelism(1) + SupervisorJob())
+    private val sendScope = CoroutineScope(Dispatchers.IO.limitedParallelism(4) + SupervisorJob())
+    private val packetQueue = kotlinx.coroutines.channels.Channel<ByteArray>(200)
+    private val nextChannelIndex = java.util.concurrent.atomic.AtomicInteger(0)
+
     
     // --- LINK MONITORING ---
     var onLinkTypeDetected: ((String) -> Unit)? = null
@@ -50,6 +53,7 @@ class WebRtcManager(
     var onSdpGenerated: ((SessionDescription) -> Unit)? = null
     var onPacketReceived: ((ByteArray) -> Unit)? = null
     var onChannelStateChanged: ((DataChannel.State) -> Unit)? = null
+    var onBufferedAmountLow: (() -> Unit)? = null
     
     var remoteDeviceId: String = "unknown"
 
@@ -73,6 +77,15 @@ class WebRtcManager(
     }
 
     init {
+        // Start Multiple Parallel Packet Queue Consumers (Stripe Workers)
+        repeat(4) {
+            sendScope.launch {
+                for (packet in packetQueue) {
+                    sendData(packet)
+                }
+            }
+        }
+
         val filteredServers = if (forceP2p) {
             iceServers.filter { srv -> srv.urls.any { it.startsWith("stun:") } }
         } else {
@@ -85,7 +98,12 @@ class WebRtcManager(
             rtcpMuxPolicy = PeerConnection.RtcpMuxPolicy.REQUIRE
             continualGatheringPolicy = PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY
             iceTransportsType = PeerConnection.IceTransportsType.ALL
+            
+            // JOKER STEALTH: Optimized for restricted carriers
+            activeResetSrtpParams = true
+            sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
         }
+
         
         peerConnection = getFactory(context).createPeerConnection(rtcConfig, object : PeerConnection.Observer {
             override fun onIceCandidate(candidate: IceCandidate) {
@@ -142,11 +160,19 @@ class WebRtcManager(
             maxRetransmits = -1 // Unlimited retransmits for TCP reliability over UDP
         }
         
-        // Only create DataChannel if it doesn't exist or is closed
-        if (dataChannel == null || dataChannel?.state() == DataChannel.State.CLOSED) {
-            val dc = peerConnection?.createDataChannel("KamuiTunnel", dcInit)
-            if (dc != null) setupDataChannel(dc)
+        // DataChannel Pool Setup: 4 channels standard, 8 channels in Turbo Mode
+        val channelCount = if (turboMode) 8 else 4
+        synchronized(dataChannels) {
+            val activeChannels = dataChannels.count { it.state() == DataChannel.State.OPEN || it.state() == DataChannel.State.CONNECTING }
+            if (activeChannels < channelCount) {
+                for (i in 1..(channelCount - activeChannels)) {
+                    val label = "KamuiTunnel-$i-${System.currentTimeMillis()}"
+                    val dc = peerConnection?.createDataChannel(label, dcInit)
+                    if (dc != null) setupDataChannel(dc)
+                }
+            }
         }
+
 
         Log.d(TAG, "[SDP_STEP] Creating Offer (State: ${peerConnection?.signalingState()})")
         peerConnection?.createOffer(object : org.webrtc.SdpObserver {
@@ -156,8 +182,11 @@ class WebRtcManager(
                     override fun onCreateSuccess(p0: SessionDescription?) {}
                     override fun onSetSuccess() { 
                         Log.d(TAG, "[SDP_STEP] Local Description Set (Offer)")
-                        onSdpGenerated?.invoke(sdp) 
+                        // Social Carrier Masking: Inject WhatsApp domain in SDP attributes
+                        val maskedSdp = injectSocialMask(sdp.description)
+                        onSdpGenerated?.invoke(SessionDescription(sdp.type, maskedSdp)) 
                     }
+
                     override fun onCreateFailure(error: String?) {
                         Log.e(TAG, "[SDP_STEP] Set Local Description Failure: $error")
                     }
@@ -209,8 +238,10 @@ class WebRtcManager(
                             override fun onCreateSuccess(p0: SessionDescription?) {}
                             override fun onSetSuccess() { 
                                 Log.d(TAG, "[SDP_STEP] Local Description Set (Answer)")
-                                onSdpGenerated?.invoke(answer) 
+                                val maskedSdp = injectSocialMask(answer.description)
+                                onSdpGenerated?.invoke(SessionDescription(answer.type, maskedSdp)) 
                             }
+
                             override fun onCreateFailure(error: String?) {
                                 Log.e(TAG, "[SDP_STEP] Set Local Description Failure (Answer): $error")
                             }
@@ -290,7 +321,10 @@ class WebRtcManager(
     }
 
     private fun setupDataChannel(dc: DataChannel) {
-        dataChannel = dc
+        synchronized(dataChannels) {
+            dataChannels.add(dc)
+        }
+        
         dc.registerObserver(object : DataChannel.Observer {
             override fun onMessage(buffer: DataChannel.Buffer) {
                 val bytes = ByteArray(buffer.data.remaining())
@@ -299,46 +333,80 @@ class WebRtcManager(
             }
 
             override fun onStateChange() {
-                Log.d(TAG, "DataChannel State: ${dc.state()}")
-                onChannelStateChanged?.invoke(dc.state())
+                Log.d(TAG, "DataChannel ${dc.label()} State: ${dc.state()}")
+                
+                synchronized(dataChannels) {
+                    val allOpen = dataChannels.any { it.state() == DataChannel.State.OPEN }
+                    if (allOpen) onChannelStateChanged?.invoke(DataChannel.State.OPEN)
+                    else if (dataChannels.all { it.state() == DataChannel.State.CLOSED }) {
+                        onChannelStateChanged?.invoke(DataChannel.State.CLOSED)
+                    }
+                }
             }
 
-            override fun onBufferedAmountChange(p0: Long) {}
+            override fun onBufferedAmountChange(p0: Long) {
+                // Flow Control: Trigger resume if buffer drops below 128KB
+                if (p0 < 128 * 1024) {
+                    onBufferedAmountLow?.invoke()
+                }
+            }
         })
     }
 
     fun getBufferedAmount(): Long {
-        return dataChannel?.bufferedAmount() ?: 0
+        return synchronized(dataChannels) {
+            dataChannels.sumOf { it.bufferedAmount() }
+        }
     }
 
     fun getChannelState(): DataChannel.State {
-        return dataChannel?.state() ?: DataChannel.State.CLOSED
+        return synchronized(dataChannels) {
+            if (dataChannels.any { it.state() == DataChannel.State.OPEN }) DataChannel.State.OPEN
+            else if (dataChannels.any { it.state() == DataChannel.State.CONNECTING }) DataChannel.State.CONNECTING
+            else DataChannel.State.CLOSED
+        }
     }
 
-    suspend fun sendData(data: ByteArray): Boolean {
-        val dc = dataChannel ?: return false
-        if (dc.state() != DataChannel.State.OPEN) return false
+    fun sendData(data: ByteArray): Boolean {
+        val dc = synchronized(dataChannels) {
+            val openChannels = dataChannels.filter { it.state() == DataChannel.State.OPEN }
+            if (openChannels.isEmpty()) return false
+            
+            // Round-robin packet striping across open channels in the pool
+            val index = nextChannelIndex.getAndIncrement() % openChannels.size
+            openChannels[if (index < 0) index + openChannels.size else index]
+        }
 
         // Backpressure protection (prevent native buffer overflow)
-        if (dc.bufferedAmount() > 1_500_000) { // 1.5 MB
+        val maxBuffer = if (turboMode) 6_000_000 else 3_000_000
+        if (getBufferedAmount() > maxBuffer) { 
+            Log.w(TAG, "WebRTC aggregate buffer overflow (${getBufferedAmount()} bytes). Dropping packet.")
             return false
         }
 
         return try {
-            sendMutex.withLock {
-                val buffer = DataChannel.Buffer(ByteBuffer.wrap(data), true)
-                dc.send(buffer)
-                true
-            }
+            // Truly concurrent submission without global lock contention
+            val buffer = DataChannel.Buffer(ByteBuffer.wrap(data), true)
+            dc.send(buffer)
+            true
         } catch (e: Throwable) {
             Log.e("WebRtcManager", "Native send failed: ${e.message}")
             false
         }
     }
 
+
     fun sendPacket(data: ByteArray, highPriority: Boolean = true) {
-        sendScope.launch {
-            sendData(data)
+        val result = packetQueue.trySend(data)
+        if (!result.isSuccess) {
+            // Drop non-priority packets if queue is full to avoid lag
+            if (highPriority) {
+                sendScope.launch {
+                    packetQueue.send(data)
+                }
+            } else {
+                Log.w(TAG, "WebRTC Packet Queue full. Dropping low-priority packet.")
+            }
         }
     }
 
@@ -383,9 +451,33 @@ class WebRtcManager(
     fun close() {
         statsJob?.cancel()
         scope.cancel()
-        dataChannel?.dispose()
+        synchronized(dataChannels) {
+            dataChannels.forEach { it.dispose() }
+            dataChannels.clear()
+        }
         peerConnection?.dispose()
         // Explicitly stop native network monitor to prevent IntentReceiver leaks
         org.webrtc.NetworkMonitor.getInstance().stopMonitoring()
     }
+
+
+    /**
+     * Injects "Social Carrier" attributes into SDP to mask as WhatsApp traffic.
+     */
+    private fun injectSocialMask(sdp: String): String {
+        val lines = sdp.split("\r\n").toMutableList()
+        val newLines = mutableListOf<String>()
+        
+        for (line in lines) {
+            newLines.add(line)
+            // After m=application (DataChannel), inject WhatsApp domain attribute
+            if (line.startsWith("m=application")) {
+                newLines.add("a=host:m.whatsapp.net")
+                newLines.add("a=extmap:5222 urn:ietf:params:rtp-hdrext:social-mask")
+            }
+        }
+        
+        return newLines.joinToString("\r\n")
+    }
 }
+

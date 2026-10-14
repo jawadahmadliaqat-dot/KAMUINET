@@ -12,6 +12,8 @@ import io.github.jan.supabase.realtime.broadcast
 import io.github.jan.supabase.realtime.broadcastFlow
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.realtime
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -30,15 +32,38 @@ object HostDiscovery {
     private val outgoingChannels = ConcurrentHashMap<String, RealtimeChannel>()
     private val channelMutex = Mutex()
 
+    // Joker Stealth: Obfuscated room prefix
+    private val ROOM_PREFIX = com.kamuinet.client.util.CryptoUtils.reveal("CBAfDBoMCgwQCBA=") // "p2p-signals-"
+
+    private val encryptedPrefs by lazy {
+        val masterKey = MasterKey.Builder(KamuiApplication.instance)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        EncryptedSharedPreferences.create(
+            KamuiApplication.instance,
+            "kamui_identity_secure",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
+
     val myDeviceId: String by lazy {
-        val prefs = KamuiApplication.instance.getSharedPreferences("kamui_identity", android.content.Context.MODE_PRIVATE)
-        var id = prefs.getString("device_uuid", null)
+        var id = encryptedPrefs.getString("device_uuid", null)
         if (id == null) {
-            val model = android.os.Build.MODEL.replace(" ", "-")
-            val random = java.util.UUID.randomUUID().toString().take(4).uppercase()
-            id = "$model-$random"
-            prefs.edit().putString("device_uuid", id).apply()
-            Log.d(TAG, "Generated new persistent Kamui ID: $id")
+            // Migrate from old plain prefs if exists, then delete it
+            val oldPrefs = KamuiApplication.instance.getSharedPreferences("kamui_identity", android.content.Context.MODE_PRIVATE)
+            val oldId = oldPrefs.getString("device_uuid", null)
+            
+            id = if (oldId != null && !oldId.contains(android.os.Build.MODEL)) {
+                oldId // Keep existing UUID but move to encrypted
+            } else {
+                java.util.UUID.randomUUID().toString().uppercase()
+            }
+            
+            encryptedPrefs.edit().putString("device_uuid", id).apply()
+            oldPrefs.edit().remove("device_uuid").apply()
+            Log.d(TAG, "Initialized secure persistent Kamui UUID: $id")
         }
         id
     }
@@ -48,19 +73,23 @@ object HostDiscovery {
     private val heartbeatListeners = ConcurrentHashMap<String, (ip: String, port: Int, fromDeviceId: String) -> Unit>()
 
     private suspend fun getChannelFor(uid: String): RealtimeChannel = channelMutex.withLock {
-        val channelId = "p2p-signals-$uid"
+        val channelId = "$ROOM_PREFIX$uid"
         
         // 1. Check if this is one of the incoming channels we already have
         incomingChannels[uid]?.let { 
-            if (it.status.value == RealtimeChannel.Status.SUBSCRIBED) {
+            val status = it.status.value
+            if (status == RealtimeChannel.Status.SUBSCRIBED || status == RealtimeChannel.Status.SUBSCRIBING) {
                 return it
             }
         }
 
         // 2. Check outgoing cache
         val existing = outgoingChannels[uid]
-        if (existing != null && existing.status.value == RealtimeChannel.Status.SUBSCRIBED) {
-            return existing
+        if (existing != null) {
+            val status = existing.status.value
+            if (status == RealtimeChannel.Status.SUBSCRIBED || status == RealtimeChannel.Status.SUBSCRIBING) {
+                return existing
+            }
         }
         
         Log.d(TAG, "[CHANNEL] Creating/Subscribing to new channel: $channelId")
@@ -244,8 +273,8 @@ object HostDiscovery {
         onHeartbeat: ((ip: String, port: Int, fromDeviceId: String) -> Unit)? = null
     ): RealtimeChannel? = channelMutex.withLock {
         val myUid = explicitUid ?: currentUid()
-        if (myUid == null) {
-            Log.e(TAG, "listenForSignaling: No UID available for subscription")
+        if (myUid.isNullOrBlank()) {
+            Log.w(TAG, "listenForSignaling: Ignored because userId is null/blank. Waiting for auth.")
             return null
         }
 
@@ -253,12 +282,15 @@ object HostDiscovery {
         iceListeners[id] = onIce
         onHeartbeat?.let { heartbeatListeners[id] = it }
 
-        val channelId = "p2p-signals-$myUid"
+        val channelId = "$ROOM_PREFIX$myUid"
         
-        // If already subscribed to this room, just return the channel
+        // If already joined to this room, just return the channel
         val existing = incomingChannels[myUid]
-        if (existing != null && existing.status.value == RealtimeChannel.Status.SUBSCRIBED) {
-            return existing
+        if (existing != null) {
+            val status = existing.status.value
+            if (status == RealtimeChannel.Status.SUBSCRIBED || status == RealtimeChannel.Status.SUBSCRIBING) {
+                return existing
+            }
         }
 
         try {

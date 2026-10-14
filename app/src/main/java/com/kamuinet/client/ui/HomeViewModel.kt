@@ -19,7 +19,13 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class AuthUiStatus {
+    LOADING, AUTHENTICATED, UNAUTHENTICATED
+}
+
 data class HomeUiState(
+    val authStatus: AuthUiStatus = AuthUiStatus.LOADING,
+    val uid: String? = null,
     val isLoggedIn: Boolean = false,
     val isSharing: Boolean = false,
     val isSignUpMode: Boolean = false,
@@ -31,7 +37,13 @@ data class HomeUiState(
     val endpointInfo: String = "—",
     val linkState: String = "idle",
     val linkType: String = "Direct P2P",
+    val bytesSent: Long = 0,
+    val bytesReceived: Long = 0,
+    val bytesSaved: Long = 0,
+    val isTurboMode: Boolean = false,
     val hostLocalIp: String = "",
+
+
     val hostPublicIp: String = "",
     val hostNetworkType: String = ""
 )
@@ -79,15 +91,40 @@ class HomeViewModel @Inject constructor(
                 statusText = status.message,
                 linkType = status.linkType,
                 sharingTitle = if (status.isActive) "Secure Sharing Active" else "Ready to share",
-                linkState = if (status.isActive) "active" else "idle"
+                linkState = if (status.isActive) "active" else "idle",
+                bytesSent = status.bytesSent,
+                bytesReceived = status.bytesReceived,
+                bytesSaved = status.bytesSaved
             )
         }.launchIn(viewModelScope)
     }
 
+
     private fun observeSessionStatus() {
         AuthManager.sessionStatus.onEach { status ->
-            val loggedIn = status is SessionStatus.Authenticated
+            val uiStatus = when (status) {
+                is SessionStatus.Authenticated -> AuthUiStatus.AUTHENTICATED
+                is SessionStatus.NotAuthenticated -> AuthUiStatus.UNAUTHENTICATED
+                is SessionStatus.Initializing -> {
+                    if (_uiState.value.authStatus == AuthUiStatus.AUTHENTICATED || AuthManager.isLoggedIn()) {
+                        AuthUiStatus.AUTHENTICATED
+                    } else {
+                        AuthUiStatus.LOADING
+                    }
+                }
+                else -> AuthUiStatus.LOADING
+            }
+            
+            val loggedIn = uiStatus == AuthUiStatus.AUTHENTICATED
+            val uid = if (status is SessionStatus.Authenticated) {
+                status.session.user?.id
+            } else if (loggedIn) {
+                _uiState.value.uid ?: AuthManager.currentUserId()
+            } else null
+            
             _uiState.value = _uiState.value.copy(
+                authStatus = uiStatus,
+                uid = uid,
                 isLoggedIn = loggedIn,
                 sharingDetail = if (loggedIn) "Share on the device with internet, then join on the other." else "Sign in with the same account on both devices"
             )
@@ -97,6 +134,7 @@ class HomeViewModel @Inject constructor(
     fun checkAuthStatus() {
         val loggedIn = AuthManager.isLoggedIn()
         _uiState.value = _uiState.value.copy(
+            authStatus = if (loggedIn) AuthUiStatus.AUTHENTICATED else AuthUiStatus.UNAUTHENTICATED,
             isLoggedIn = loggedIn,
             sharingDetail = if (loggedIn) "Share on the device with internet, then join on the other." else "Sign in with the same account on both devices"
         )
@@ -118,6 +156,11 @@ class HomeViewModel @Inject constructor(
     fun setSharing(sharing: Boolean) {
         _uiState.value = _uiState.value.copy(isSharing = sharing)
     }
+
+    fun setTurboMode(enabled: Boolean) {
+        _uiState.value = _uiState.value.copy(isTurboMode = enabled)
+    }
+
 
     fun updateLinkState(state: String, title: String, detail: String, status: String) {
         _uiState.value = _uiState.value.copy(

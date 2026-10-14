@@ -5,4 +5,5 @@
     <string name="security_shield_title">Security Shield</string>
     <string name="security_shield_message">This connection allows a peer to act as your internet host. Only connect to people you trust, as the host can technically see unencrypted traffic. Continue?</string>
     <string name="default_web_client_id">1021656969629-kv2cgibq3m126tspt7kj7lm0gafgjbrp.apps.googleusercontent.com</string>
+    <string name="select_apps">Select Split-Tunnel Apps</string>
 </resources>

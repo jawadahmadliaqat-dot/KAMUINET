@@ -24,12 +24,27 @@ object SecurityUtils {
             "/data/local/su",
             "/system/bin/.ext/.su",
             "/system/usr/we-need-root/su-backup",
-            "/system/xbin/mu"
+            "/system/xbin/mu",
+            "/data/local/xbin/magisk",
+            "/sbin/magisk",
+            "/system/etc/init.d/99SuperSUDaemon",
+            "/dev/com.koushikdutta.superuser.daemon/"
         )
         for (path in paths) {
             if (File(path).exists()) return true
         }
         
+        // Check for unusual mount points
+        try {
+            val process = Runtime.getRuntime().exec("mount")
+            val reader = process.inputStream.bufferedReader()
+            reader.useLines { lines ->
+                lines.forEach { line ->
+                    if (line.contains("magisk") || line.contains("superuser")) return true
+                }
+            }
+        } catch (_: Exception) {}
+
         // Check for test-keys
         val buildTags = Build.TAGS
         if (buildTags != null && buildTags.contains("test-keys")) return true

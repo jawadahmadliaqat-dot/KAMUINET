@@ -143,6 +143,16 @@
                     android:text="Disables Relay Server. Saves Oracle bandwidth but may fail on strict firewalls."
                     android:textColor="@color/kamui_muted"
                     android:textSize="11sp" />
+
+                <View android:layout_width="match_parent" android:layout_height="12dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_app_selection"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/select_apps"
+                    app:icon="@android:drawable/ic_menu_agenda" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

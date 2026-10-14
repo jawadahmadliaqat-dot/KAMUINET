@@ -41,6 +41,7 @@ import kotlin.concurrent.thread
 class KamuiVpnService : VpnService() {
 
     @Inject lateinit var vpnRepository: VpnRepository
+    @Inject lateinit var appConfigRepository: com.kamuinet.client.data.AppConfigRepository
 
     private var tun: ParcelFileDescriptor? = null
     private var isRunning = false
@@ -55,6 +56,8 @@ class KamuiVpnService : VpnService() {
     
     private var wakeLock: PowerManager.WakeLock? = null
     private var wifiLock: android.net.wifi.WifiManager.WifiLock? = null
+    
+    private val tunResumeSignal = kotlinx.coroutines.channels.Channel<Unit>(kotlinx.coroutines.channels.Channel.CONFLATED)
 
     private var lastNotificationText: String? = null
     private var lastLinkType: String? = null
@@ -110,7 +113,9 @@ class KamuiVpnService : VpnService() {
                 // 1. Initialize RTC FIRST
                 val iceServers = TurnCredentialsManager.fetchIceServers()
                 rtcManager = WebRtcManager(this@KamuiVpnService, iceServers, HostDiscovery.myDeviceId, forceP2p).apply {
+                    turboMode = isTurboMode.get()
                     if (targetDeviceId != null) {
+
                         remoteDeviceId = targetDeviceId
                     }
                     onLinkTypeDetected = { type ->
@@ -177,46 +182,37 @@ class KamuiVpnService : VpnService() {
         if (tun != null) return
         
         try {
-            // CRITICAL: Initialize builder and add disallowed app BEFORE establish()
             val builder = Builder()
                 .setSession("KamuiNet Tunnel")
                 .addAddress("10.66.0.2", 24)
                 .addRoute("0.0.0.0", 0) 
-                
-                // ORDER: Disallow app BEFORE establish() to prevent routing loops
-                .addDisallowedApplication(packageName)
-                
-                // --- SPLIT TUNNELING: Route ONLY specific apps ---
-                // This reduces Host load by 90% by skipping OS background updates.
-                val targetPackages = listOf(
-                    "com.google.android.youtube",             // YouTube
-                    "com.android.chrome",                     // Google Chrome
-                    "com.google.android.apps.youtube.music", // YouTube Music
-                    "org.mozilla.firefox",                    // Firefox
-                    "com.microsoft.emmx"                      // Edge
-                )
+                .addRoute("::", 0) // IPv6 Leak Protection
 
-                var allowedAppCount = 0
-                for (pkg in targetPackages) {
-                    try {
-                        builder.addAllowedApplication(pkg)
-                        allowedAppCount++
-                        Log.i(TAG, "Split-Tunneling enabled for: $pkg")
-                    } catch (e: android.content.pm.PackageManager.NameNotFoundException) {
-                        Log.w(TAG, "App not installed on device, skipping: $pkg")
-                    } catch (e: Throwable) {
-                        Log.w(TAG, "Could not add allowed app $pkg: ${e.message}")
+                val allowedApps = appConfigRepository.getAllowedApps()
+                if (allowedApps.isNotEmpty()) {
+                    var allowedAppCount = 0
+                    for (pkg in allowedApps) {
+                        try {
+                            builder.addAllowedApplication(pkg)
+                            allowedAppCount++
+                            Log.i(TAG, "Split-Tunneling enabled for: $pkg")
+                        } catch (e: android.content.pm.PackageManager.NameNotFoundException) {
+                            Log.w(TAG, "App not installed on device, skipping: $pkg")
+                        } catch (e: Throwable) {
+                            Log.w(TAG, "Could not add allowed app $pkg: ${e.message}")
+                        }
                     }
+                    Log.i(TAG, "Split-Tunnel active with $allowedAppCount allowed applications.")
+                } else {
+                    Log.i(TAG, "No specific apps selected. Running in FULL TUNNEL mode.")
                 }
-                Log.i(TAG, "Split-Tunnel active with $allowedAppCount allowed applications.")
 
                 builder.addDnsServer("1.1.1.1")
                 builder.addDnsServer("8.8.8.8")
                 
-                // MTU 1400: Increased from 1200 to support QUIC (1232b) without local fragmentation
-                .setMtu(1400)
-                
-                .setBlocking(true)
+                // Joker Stealth: MTU 1200 - Optimal for fragmented TLS and carrier masking overhead
+                builder.setMtu(1200)
+                builder.setBlocking(true)
 
             tun = builder.establish()
             if (tun == null) {
@@ -226,9 +222,16 @@ class KamuiVpnService : VpnService() {
             }
 
             vpnOutput = FileOutputStream(tun!!.fileDescriptor)
-            proxyEngine = TunProxyEngine(vpnOutput!!, sendToHost = { data, highPriority -> 
-                rtcManager?.sendPacket(data, highPriority) 
-            })
+            proxyEngine = TunProxyEngine(
+                vpnOutput!!, 
+                sendToHost = { data, highPriority -> 
+                    rtcManager?.sendPacket(data, highPriority) 
+                },
+                onSavingsReported = { saved ->
+                    vpnRepository.updateBytes(bytesSent.get(), bytesReceived.get(), saved)
+                }
+            )
+
             isRunning = true
             
             startTunReader()
@@ -243,7 +246,22 @@ class KamuiVpnService : VpnService() {
         }
     }
 
+    fun setSmartRouting(enabled: Boolean) {
+        proxyEngine?.smartRoutingEnabled = enabled
+    }
+
+    fun setTurboMode(enabled: Boolean) {
+        isTurboMode.set(enabled)
+        rtcManager?.turboMode = enabled
+        if (enabled && isTunnelActive.get()) {
+            // Force create additional channels immediately
+            rtcManager?.createOffer()
+        }
+    }
+
+
     private fun cleanupAndStop() {
+
         isRunning = false
         try { vpnOutput?.close() } catch (_: Exception) {}
         try { tun?.close() } catch (_: Exception) {}
@@ -284,6 +302,13 @@ class KamuiVpnService : VpnService() {
             onSdp = { sdp, type, fromUid, fromDeviceId ->
                 // Same Account Filter: Verify UID AND DeviceID to avoid loops/collisions
                 if (fromUid == targetUid && fromDeviceId == targetDeviceId) {
+                    // Guard: If tunnel is already established, only allow SDP if it's an answer 
+                    // (prevents offer loops during Supabase reconnection)
+                    if (isTunnelActive.get() && type == "offer") {
+                        Log.d(TAG, "[HANDSHAKE] Signal received but tunnel is already OPEN. Ignoring.")
+                        return@listenForSignaling
+                    }
+
                     if (type == "answer") {
                         rtcManager?.setAnswer(sdp, fromDeviceId)
                     } else if (type == "offer") {
@@ -302,20 +327,20 @@ class KamuiVpnService : VpnService() {
         rtcManager?.onPacketReceived = { data ->
             val received = bytesReceived.addAndGet(data.size.toLong())
             vpnRepository.updateBytes(bytesSent.get(), received)
-            val engine = proxyEngine
-            if (engine != null) {
+            
+            // JOKER OPTIMIZATION: Use a dedicated scope for incoming packets to avoid Main thread lag
+            // and ensure robust processing without coroutine explosion.
+            scope.launch(Dispatchers.Default) {
                 try {
-                    engine.onHostFrame(data)
+                    proxyEngine?.onHostFrame(data)
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error handling incoming RTC packet: ${e.message}", e)
-                }
-            } else {
-                // If tunnel just opened, proxyEngine might be initializing.
-                // Log this to see if it's the cause of DNS startup failure.
-                if (isTunnelActive.get()) {
-                    Log.d(TAG, "Host packet received but proxyEngine not ready yet (${data.size}b)")
+                    Log.e(TAG, "Error handling incoming RTC packet: ${e.message}")
                 }
             }
+        }
+        
+        rtcManager?.onBufferedAmountLow = {
+            tunResumeSignal.trySend(Unit)
         }
 
         rtcManager?.onChannelStateChanged = { state ->
@@ -347,33 +372,33 @@ class KamuiVpnService : VpnService() {
             val buffer = ByteArray(32768)
             try {
                 while (isRunning && tun != null) {
-                    // CONGESTION CONTROL: Non-blocking backpressure if WebRTC buffer is full (>2MB)
-                    val buffered = rtcManager?.getBufferedAmount() ?: 0
-                    if (buffered > 2 * 1024 * 1024) {
-                        delay(10) 
-                        continue
+                    // CONGESTION CONTROL: Pause if WebRTC buffer exceeds limit
+                    val threshold = if (isTurboMode.get()) 3000 * 1024 else 1000 * 1024
+                    if ((rtcManager?.getBufferedAmount() ?: 0) > threshold) {
+                        tunResumeSignal.receive()
                     }
 
                     val length = vpnInput.read(buffer)
                     if (length > 0) {
                         val packet = buffer.copyOfRange(0, length)
-                        withContext(Dispatchers.Default) {
-                            proxyEngine?.onTunPacket(packet)
-                        }
+                        
+                        // Joker Optimization: Process packet directly in IO thread to avoid context switching latency
+                        proxyEngine?.onTunPacket(packet)
                         
                         val sent = bytesSent.addAndGet(length.toLong())
                         vpnRepository.updateBytes(sent, bytesReceived.get())
+                        
                         if (dataLimitMb > 0 && sent > dataLimitMb * 1024L * 1024L) {
                             Log.w(TAG, "Data limit reached ($dataLimitMb MB). Disconnecting.")
-                            withContext(Dispatchers.Main) {
-                                stopSelf()
-                            }
+                            scope.launch(Dispatchers.Main) { stopSelf() }
                             break
                         }
                     }
                 }
             } catch (e: Exception) {
                 if (isRunning) Log.w(TAG, "TunReader ended: ${e.message}")
+            } finally {
+                try { vpnInput.close() } catch (_: Exception) {}
             }
         }
     }
@@ -434,6 +459,8 @@ class KamuiVpnService : VpnService() {
         var bytesSent = AtomicLong(0)
         var bytesReceived = AtomicLong(0)
         var isTunnelActive = AtomicBoolean(false)
+        var isTurboMode = AtomicBoolean(false)
         var lastStatus = "Disconnected"
     }
 }
+

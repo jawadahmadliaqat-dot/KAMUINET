@@ -16,10 +16,11 @@ class VpnRepository @Inject constructor() {
         _vpnStatus.value = status
     }
 
-    fun updateBytes(sent: Long, received: Long) {
+    fun updateBytes(sent: Long, received: Long, saved: Long = 0) {
         _vpnStatus.value = _vpnStatus.value.copy(
             bytesSent = sent,
-            bytesReceived = received
+            bytesReceived = received,
+            bytesSaved = _vpnStatus.value.bytesSaved + saved
         )
     }
 
@@ -40,5 +41,7 @@ data class VpnStatus(
     val message: String = "Disconnected",
     val linkType: String = "Unknown",
     val bytesSent: Long = 0,
-    val bytesReceived: Long = 0
+    val bytesReceived: Long = 0,
+    val bytesSaved: Long = 0
 )
+

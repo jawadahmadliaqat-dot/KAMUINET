@@ -47,9 +47,18 @@ object TurnCredentialsManager {
                 Log.w(TAG, "Edge function returned empty ICE list. Falling back.")
                 WebRtcConfig.iceServers
             } else {
-                Log.d(TAG, "Fetched ${servers.size} ICE servers from Edge Function")
-                servers
+                Log.d(TAG, "Fetched ${servers.size} ICE servers. Optimizing for Social Carrier Mode.")
+                // WhatsApp Optimization: Prioritize port 443 and TCP/TLS relays
+                servers.sortedByDescending { server ->
+                    val url = server.urls.firstOrNull() ?: ""
+                    var score = 0
+                    if (url.contains(":443")) score += 10
+                    if (url.startsWith("turns:")) score += 5
+                    if (url.contains("transport=tcp")) score += 3
+                    score
+                }
             }
+
         } catch (e: Exception) {
             Log.e(TAG, "Failed to fetch TURN credentials: ${e.message}. Using hardcoded fallback.")
             // CRITICAL: Always return fallback to ensure app can still attempt connection

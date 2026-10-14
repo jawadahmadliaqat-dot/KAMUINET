@@ -15,6 +15,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.kamuinet.client.MainActivity
 import com.kamuinet.client.R
 import com.kamuinet.client.signaling.HostDiscovery
@@ -32,6 +33,7 @@ class SettingsFragment : Fragment() {
         val portField = view.findViewById<EditText>(R.id.port_field)
         val upnpCheck = view.findViewById<CheckBox>(R.id.upnp_check)
         val directOnlyCheck = view.findViewById<CheckBox>(R.id.direct_only_check)
+        val btnAppSelection = view.findViewById<Button>(R.id.btn_app_selection)
 
         val prefs = requireContext().getSharedPreferences("kamui_settings", Context.MODE_PRIVATE)
 
@@ -79,6 +81,10 @@ class SettingsFragment : Fragment() {
         }
         directOnlyCheck.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("direct_only", isChecked).apply()
+        }
+
+        btnAppSelection.setOnClickListener {
+            findNavController().navigate(R.id.appSelectionFragment)
         }
 
         if (AuthManager.isLoggedIn()) {
